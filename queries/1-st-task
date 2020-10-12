@@ -1,0 +1,283 @@
+-------------[1]---------------
+------------{task}--------------
+Получить полную информацию обо всех преподавателях.
+--------------------------------
+
+SELECT * FROM lecturer;
+
+
+
+-------------[2]---------------
+------------{task}--------------
+Получить полную информацию обо всех студенческих группах на специальности ЭВМ.
+--------------------------------
+
+SELECT * FROM student_group WHERE specialty='ЭВМ';
+
+
+
+-------------[3]---------------
+------------{task}--------------
+Получить личный номер преподавателя и номера аудиторий, в которых они преподают предмет с кодовым номером 18П.
+--------------------------------
+
+SELECT personal_id, auditorium_number FROM lecturer_teaches_subjects_in_groups  WHERE subject_id='18П';
+
+
+
+-------------[4]---------------
+------------{task}--------------
+Получить  номера предметов и названия предметов, которые ведет преподаватель Костин.
+--------------------------------
+
+SELECT DISTINCT subject.subject_id, subject.subject_name 
+	FROM lecturer_teaches_subjects_in_groups 
+		JOIN subject ON lecturer_teaches_subjects_in_groups.subject_id = subject.subject_id  
+		JOIN lecturer ON lecturer_teaches_subjects_in_groups.personal_id = lecturer.personal_id  
+	WHERE lecturer.surname ='Костин';
+
+
+
+-------------[5]---------------
+------------{task}--------------
+Получить номер группы, в которой ведутся предметы преподавателем Фроловым.
+--------------------------------
+
+SELECT lecturer_teaches_subjects_in_groups.group_id 
+FROM lecturer_teaches_subjects_in_groups 
+	JOIN lecturer ON lecturer.personal_id = lecturer_teaches_subjects_in_groups.personal_id   
+WHERE lecturer.surname = 'Фролов';
+
+
+
+-------------[6]---------------
+------------{task}--------------
+Получить информацию о предметах, которые ведутся на специальности АСОИ.
+--------------------------------
+
+SELECT * FROM subject WHERE subject.specialty ='АСОИ';
+
+
+
+-------------[7]---------------
+------------{task}--------------
+Получить информацию о преподавателях, которые ведут предметы на специальности АСОИ.
+--------------------------------
+
+SELECT * FROM lecturer WHERE lecturer.specialty LIKE '%АСОИ%';
+
+
+
+-------------[8]---------------
+------------{task}--------------
+Получить фамилии преподавателей, которые ведут предметы в 210 аудитории.
+--------------------------------
+
+SELECT DISTINCT lecturer.surname 
+FROM lecturer_teaches_subjects_in_groups 
+	JOIN lecturer ON lecturer.personal_id = lecturer_teaches_subjects_in_groups.personal_id 
+WHERE lecturer_teaches_subjects_in_groups.auditorium_number = '210';
+
+
+
+-------------[9]---------------
+------------{task}--------------
+Получить названия предметов и названия групп, которые ведут занятия в аудиториях с 100 по 200.
+--------------------------------
+
+SELECT subject.subject_name, student_group.group_name 
+FROM lecturer_teaches_subjects_in_groups 
+	JOIN subject ON subject.subject_id = lecturer_teaches_subjects_in_groups.subject_id 
+	JOIN student_group ON student_group.group_id = lecturer_teaches_subjects_in_groups.group_id 
+WHERE lecturer_teaches_subjects_in_groups.auditorium_number >= 100 AND lecturer_teaches_subjects_in_groups.auditorium_number <= 200;
+
+
+
+-------------[10]---------------
+------------{task}--------------
+Получить пары номеров групп с одной специальности.
+--------------------------------
+
+SELECT first_student_group.group_id, second_student_group.group_id 
+	FROM student_group AS first_student_group 
+	JOIN student_group AS second_student_group ON first_student_group.specialty = second_student_group.specialty AND first_student_group.group_id < second_student_group.group_id;
+
+
+
+-------------[11]---------------
+------------{task}--------------
+Получить общее количество студентов, обучающихся на специальности ЭВМ.
+--------------------------------
+
+SELECT SUM(number_of_people ) AS AMOUNT 
+	FROM student_group WHERE specialty ='ЭВМ';
+
+
+
+-------------[12]---------------
+------------{task}--------------
+Получить номера преподавателей, обучающих студентов по специальности ЭВМ.
+--------------------------------
+
+SELECT lecturer_teaches_subjects_in_groups.personal_id 
+	FROM lecturer_teaches_subjects_in_groups 
+		JOIN student_group 
+		ON lecturer_teaches_subjects_in_groups.group_id = student_group.group_id 
+		WHERE specialty = 'ЭВМ';
+
+
+
+-------------[13]---------------
+------------{task}--------------
+Получить номера предметов, изучаемых всеми студенческими группами.
+--------------------------------
+
+SELECT lecturer_teaches_subjects_in_groups.subject_id 
+	FROM lecturer_teaches_subjects_in_groups 
+	GROUP BY lecturer_teaches_subjects_in_groups.subject_id 
+	HAVING COUNT(lecturer_teaches_subjects_in_groups.group_id ) = (SELECT COUNT(student_group.group_id )FROM student_group);
+
+
+
+-------------[14]---------------
+------------{task}--------------
+Получить фамилии преподавателей, преподающих те же предметы, что и преподаватель преподающий предмет с номером 14П.
+--------------------------------
+
+SELECT surname 
+	FROM lecturer WHERE personal_id IN (SELECT DISTINCT personal_id FROM lecturer_teaches_subjects_in_groups 
+		WHERE subject_id IN (SELECT DISTINCT subject_id FROM lecturer_teaches_subjects_in_groups 
+			WHERE personal_id = ( SELECT DISTINCT personal_id FROM lecturer_teaches_subjects_in_groups WHERE subject_id="14П")));
+
+
+
+-------------[15]---------------
+------------{task}--------------
+Получить информацию о предметах, которые не ведет преподаватель с личным номером 221П.
+--------------------------------
+
+SELECT DISTINCT subject.* 
+	FROM subject JOIN lecturer_teaches_subjects_in_groups ON subject.subject_id = lecturer_teaches_subjects_in_groups.subject_id 
+	WHERE subject.subject_id NOT IN (SELECT DISTINCT subject_id FROM lecturer_teaches_subjects_in_groups 
+		WHERE personal_id = '221Л');
+
+
+
+-------------[16]---------------
+------------{task}--------------
+Получить информацию о предметах, которые не изучаются в группе М-6.
+--------------------------------
+
+SELECT DISTINCT subject.* 
+	FROM subject 
+	JOIN lecturer_teaches_subjects_in_groups ON subject.subject_id = lecturer_teaches_subjects_in_groups.subject_id WHERE subject.subject_id NOT IN (SELECT DISTINCT subject_id FROM lecturer_teaches_subjects_in_groups 
+	WHERE group_id = (SELECT student_group.group_id FROM student_group WHERE student_group.group_name = 'М-6'));
+
+
+
+-------------[17]---------------
+------------{task}--------------
+Получить информацию о доцентах, преподающих в группах 3Г и 8Г.
+--------------------------------
+
+SELECT DISTINCT lecturer.* 
+	FROM lecturer JOIN lecturer_teaches_subjects_in_groups ON lecturer.personal_id = lecturer_teaches_subjects_in_groups.personal_id  
+	WHERE lecturer.position = 'Доцент' AND lecturer.personal_id IN (SELECT DISTINCT  lecturer_teaches_subjects_in_groups.personal_id FROM lecturer_teaches_subjects_in_groups 
+	WHERE lecturer_teaches_subjects_in_groups.group_id = '3Г' OR lecturer_teaches_subjects_in_groups.group_id  = '8Г');
+
+
+
+
+-------------[18]---------------
+------------{task}--------------
+Получить номера предметов, номера преподавателей, номера групп, в которых ведут занятия преподаватели с кафедры ЭВМ, имеющих специальность АСОИ.
+--------------------------------
+
+SELECT DISTINCT subject_id, lecturer_teaches_subjects_in_groups.personal_id, group_id 
+	FROM lecturer_teaches_subjects_in_groups 
+	JOIN lecturer ON lecturer_teaches_subjects_in_groups.personal_id = lecturer_teaches_subjects_in_groups.personal_id WHERE lecturer_teaches_subjects_in_groups.personal_id IN (SELECT personal_id FROM lecturer 
+	WHERE department = 'ЭВМ' AND specialty LIKE "%АСОИ%");
+
+
+
+-------------[19]---------------
+------------{task}--------------
+Получить номера групп с такой же специальностью, что и специальность преподавателей.
+--------------------------------
+
+SELECT DISTINCT lecturer_teaches_subjects_in_groups.group_id 
+	FROM lecturer_teaches_subjects_in_groups 
+	JOIN student_group ON lecturer_teaches_subjects_in_groups.group_id = student_group.group_id 
+	JOIN lecturer ON lecturer.personal_id = lecturer_teaches_subjects_in_groups.personal_id 
+	WHERE lecturer.specialty LIKE CONCAT ('%', student_group.specialty , '%');
+
+
+
+-------------[20]---------------
+------------{task}--------------
+Получить номера преподавателей с кафедры ЭВМ, преподающих предметы по специальности, совпадающей со специальностью студенческой группы. 
+--------------------------------
+
+SELECT DISTINCT lecturer.personal_id 
+	FROM lecturer JOIN lecturer_teaches_subjects_in_groups ON lecturer.personal_id  = lecturer_teaches_subjects_in_groups.personal_id 
+	JOIN student_group ON lecturer_teaches_subjects_in_groups.group_id = student_group.group_id WHERE lecturer.specialty = 'ЭВМ' AND lecturer.specialty  LIKE CONCAT ('%', student_group.specialty ,'%');
+
+
+
+-------------[21]---------------
+------------{task}--------------
+Получить специальности студенческой группы, на которых работают преподаватели кафедры АСУ.
+--------------------------------
+
+SELECT DISTINCT student_group.specialty 
+	FROM student_group JOIN lecturer_teaches_subjects_in_groups ON student_group.group_id = lecturer_teaches_subjects_in_groups.group_id WHERE student_group.group_id IN (SELECT DISTINCT lecturer_teaches_subjects_in_groups.group_id FROM lecturer_teaches_subjects_in_groups JOIN lecturer ON lecturer_teaches_subjects_in_groups.personal_id = lecturer.personal_id WHERE lecturer.department = 'АСУ');
+
+
+
+-------------[22]---------------
+------------{task}--------------
+Получить номера предметов, изучаемых группой АС-8.
+--------------------------------
+
+SELECT DISTINCT lecturer_teaches_subjects_in_groups.subject_id 
+	FROM student_group JOIN lecturer_teaches_subjects_in_groups ON student_group.group_id  = lecturer_teaches_subjects_in_groups.group_id WHERE student_group.group_name  = 'АС-8';
+
+
+
+-------------[23]---------------
+------------{task}--------------
+Получить номера студенческих групп, которые изучают те же предметы, что и студенческая группа АС-8.
+--------------------------------
+
+SELECT DISTINCT lecturer_teaches_subjects_in_groups.group_id  
+	FROM lecturer_teaches_subjects_in_groups WHERE lecturer_teaches_subjects_in_groups.subject_id IN (SELECT DISTINCT lecturer_teaches_subjects_in_groups.subject_id FROM student_group JOIN lecturer_teaches_subjects_in_groups ON lecturer_teaches_subjects_in_groups.group_id = student_group.group_id WHERE student_group.group_name = 'АС-8');
+
+
+
+-------------[24]---------------
+------------{task}--------------
+Получить номера студенческих групп, которые не изучают предметы, преподаваемых в студенческой группе АС-8.
+--------------------------------
+
+SELECT DISTINCT lecturer_teaches_subjects_in_groups.group_id 
+	FROM lecturer_teaches_subjects_in_groups WHERE lecturer_teaches_subjects_in_groups.group_id  NOT IN (SELECT DISTINCT lecturer_teaches_subjects_in_groups.group_id  FROM lecturer_teaches_subjects_in_groups WHERE lecturer_teaches_subjects_in_groups.subject_id IN (SELECT  DISTINCT lecturer_teaches_subjects_in_groups.subject_id FROM student_group JOIN lecturer_teaches_subjects_in_groups ON lecturer_teaches_subjects_in_groups.group_id  = student_group.group_id  WHERE student_group.group_name = 'АС-8'));
+
+
+
+-------------[25]---------------
+------------{task}--------------
+Получить номера студенческих групп, которые не изучают предметы, преподаваемых преподавателем 430Л.
+--------------------------------
+
+SELECT DISTINCT lecturer_teaches_subjects_in_groups.group_id 
+	FROM lecturer_teaches_subjects_in_groups WHERE lecturer_teaches_subjects_in_groups.group_id NOT IN (SELECT DISTINCT lecturer_teaches_subjects_in_groups.group_id FROM lecturer_teaches_subjects_in_groups WHERE lecturer_teaches_subjects_in_groups.subject_id IN (SELECT DISTINCT lecturer_teaches_subjects_in_groups.subject_id FROM lecturer_teaches_subjects_in_groups WHERE lecturer_teaches_subjects_in_groups.personal_id ='430Л'));
+
+
+
+-------------[26]---------------
+------------{task}--------------
+Получить номера преподавателей, работающих с группой Э-15, но не преподающих предмет 12П.
+--------------------------------
+
+SELECT DISTINCT lecturer_teaches_subjects_in_groups.personal_id 
+	FROM lecturer_teaches_subjects_in_groups JOIN student_group ON lecturer_teaches_subjects_in_groups.group_id = student_group.group_id WHERE student_group.group_name  = 'Э-15' AND lecturer_teaches_subjects_in_groups.personal_id NOT IN (SELECT DISTINCT lecturer_teaches_subjects_in_groups.personal_id FROM lecturer_teaches_subjects_in_groups WHERE lecturer_teaches_subjects_in_groups.subject_id = '12П');

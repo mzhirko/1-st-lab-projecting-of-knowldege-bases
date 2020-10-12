@@ -1,0 +1,87 @@
+-------------[25]---------------
+------------{task}--------------
+Получить номера проектов, город которых стоит первым в алфавитном списке городов.
+--------------------------------
+
+SELECT project.project_id FROM project ORDER BY project.city limit 1;
+
+
+
+-------------[18]---------------
+------------{task}--------------
+Получить номера деталей, поставляемых для некоторого проекта со средним количеством больше 320.
+--------------------------------
+
+SELECT DISTINCT number_of_supplied_details_for_the_project.detail_id FROM number_of_supplied_details_for_the_project WHERE number_of_supplied_details_for_the_project.detail_sum > 320;  
+
+
+
+-------------[26]---------------
+------------{task}--------------
+Получить номера проектов, для которых среднее количество поставляемых деталей Д1 больше, чем наибольшее количество любых деталей, поставляемых для проекта ПР1.
+--------------------------------
+
+SELECT procAvg.project_id FROM (SELECT project_id , detail_id, AVG(detail_sum) AS average FROM number_of_supplied_details_for_the_project GROUP BY number_of_supplied_details_for_the_project.project_id HAVING number_of_supplied_details_for_the_project.detail_id  = "Д1") as procAvg WHERE procAvg.average > (SELECT MAX(detail_sum) FROM number_of_supplied_details_for_the_project WHERE project_id = 'ПР1');
+
+
+
+-------------[7]---------------
+------------{task}--------------
+Получить все такие тройки "номера поставщиков-номера деталей-номера проектов", для которых выводимые поставщик, деталь и проект не размещены в одном городе.
+--------------------------------
+
+SELECT DISTINCT number_of_supplied_details_for_the_project.provider_id, number_of_supplied_details_for_the_project.detail_id, number_of_supplied_details_for_the_project.project_id FROM number_of_supplied_details_for_the_project JOIN provider ON provider.provider_id = number_of_supplied_details_for_the_project.provider_id JOIN details ON details.detail_id = number_of_supplied_details_for_the_project.detail_id JOIN project ON project.project_id = number_of_supplied_details_for_the_project.project_id WHERE project.city != provider.city OR project.city != details.city;
+
+
+
+-------------[4]---------------
+------------{task}--------------
+Получить все отправки, где количество находится в диапазоне от 300 до 750 включительно.
+--------------------------------
+
+SELECT * FROM number_of_supplied_details_for_the_project WHERE detail_sum  >= 300 AND detail_sum  <= 750;
+
+
+
+-------------[8]---------------
+------------{task}--------------
+Получить все такие тройки "номера поставщиков-номера деталей-номера проектов", для которых никакие из двух выводимых поставщиков, деталей и проектов не размещены в одном городе.
+--------------------------------
+
+SELECT DISTINCT number_of_supplied_details_for_the_project.provider_id, number_of_supplied_details_for_the_project.detail_id, number_of_supplied_details_for_the_project.project_id FROM number_of_supplied_details_for_the_project JOIN provider ON provider.provider_id = number_of_supplied_details_for_the_project.provider_id JOIN details ON details.detail_id = number_of_supplied_details_for_the_project.detail_id JOIN project ON project.project_id = number_of_supplied_details_for_the_project.project_id WHERE project.city != provider.city OR project.city != details.city OR provider.city != details.city;
+
+
+
+-------------[12]---------------
+------------{task}--------------
+Получить номера деталей, поставляемых для всех проектов, обеспечиваемых поставщиком из того же города, где размещен проект.
+--------------------------------
+
+SELECT DISTINCT number_of_supplied_details_for_the_project.detail_id FROM number_of_supplied_details_for_the_project JOIN provider ON provider. provider_id = number_of_supplied_details_for_the_project.provider_id JOIN project ON project.project_id = number_of_supplied_details_for_the_project.project_id WHERE provider.city = project.city;
+
+
+
+-------------[36]---------------
+------------{task}--------------
+Получить все пары номеров поставщиков, скажем, Пx и Пy, такие, что оба эти поставщика поставляют в точности одно и то же множество деталей.
+--------------------------------
+
+SELECT DISTINCT nsdp1.provider_id, nsdp2.provider_id FROM number_of_supplied_details_for_the_project nsdp1, number_of_supplied_details_for_the_project nsdp2 WHERE nsdp1.detail_id IN(SELECT detail_id FROM number_of_supplied_details_for_the_project nsdp1 WHERE nsdp1.provider_id = nsdp2.provider_id);
+
+
+
+-------------[17]---------------
+------------{task}--------------
+Для каждой детали, поставляемой для проекта, получить номер детали, номер проекта и соответствующее общее количество.
+--------------------------------
+
+SELECT * FROM number_of_supplied_details_for_the_project;
+
+
+
+-------------[32]---------------
+------------{task}--------------
+Получить номера проектов, обеспечиваемых по крайней мере всеми деталями поставщика П1.
+--------------------------------
+
+SELECT DISTINCT project.project_name FROM project JOIN number_of_supplied_details_for_the_project ON number_of_supplied_details_for_the_project.project_id = project.project_id WHERE number_of_supplied_details_for_the_project.provider_id = 'П1';
